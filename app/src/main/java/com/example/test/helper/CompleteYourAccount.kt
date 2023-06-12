@@ -3,15 +3,19 @@ package com.example.test.helper
 //TODO: Selectable item in Grid and Row
 
 import android.content.res.Configuration
+import android.graphics.Rect
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -23,6 +27,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
@@ -47,8 +54,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
@@ -56,6 +68,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.core.graphics.rotationMatrix
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.test.R
@@ -98,7 +111,7 @@ fun MainLayout() {
                     " regarding my account and other products.",
             imageUrls,
             "Select your teams for a more personalized experience",
-            )
+        )
     }
 }
 
@@ -317,7 +330,9 @@ private fun Row(ImagesList: List<String>) {
                 Icon(
                     Icons.Filled.KeyboardArrowDown,
                     contentDescription =null,
-                    Modifier.padding(10.dp).size(25.dp),
+                    Modifier
+                        .padding(10.dp)
+                        .size(25.dp),
                     tint = Color.White
                 )
                 Text(
@@ -389,24 +404,57 @@ private fun Grid(ImagesList: List<String>, titleGrid: String) {
         )
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(3),
-            modifier = Modifier.padding(top = 15.dp, bottom = 10.dp),
+            modifier = Modifier.padding(top = 15.dp, bottom = 10.dp, start = 15.dp, end = 15.dp),
             content = {
                 items(ImagesList.size) {
-                    Surface(
-                        modifier = Modifier
-                            .padding(all = 15.dp)
-                            .size(80.dp, 115.dp),
-                        color = Color.White,
-                        content = {
+
+                    var selectedItem by remember {
+                        mutableStateOf(false)
+                    }
+                    Box( modifier = Modifier
+                        .padding(5.dp)
+                        .size(80.dp, 115.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .selectable(
+                            selected = selectedItem == !selectedItem,
+                            onClick = { selectedItem = !selectedItem }),
+                        contentAlignment = Alignment.TopEnd
+                    ) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .align(Alignment.Center),
+                            border = if (selectedItem) BorderStroke(
+                                2.dp,
+                                Color.Black
+                            ) else BorderStroke(0.dp, Color.Transparent),
+                        ) {
                             GlideImage(
                                 model = ImagesList[it],
-                                contentDescription = null, Modifier.size(75.dp)
+                                contentDescription = null, Modifier.fillMaxSize()
                             )
-                        },
-                        shape = RoundedCornerShape(4.dp),
-                        shadowElevation = 14.dp,
-                        tonalElevation = 25.dp,
-                    )
+                        }
+                        if (selectedItem) {
+                            Box(
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .clip(TriangleShape)
+                                    .background( Color.Red,),
+                                contentAlignment = Alignment.Center
+
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.baseline_check_24),
+                                    contentDescription = "image",
+                                    modifier = Modifier
+                                        .size(20.dp)
+                                    ,
+
+                                )
+
+                            }
+                        }
+                    }
                 }
             },
             userScrollEnabled = false
@@ -460,6 +508,17 @@ private fun Grid(ImagesList: List<String>, titleGrid: String) {
             )
         }
     }
+}
+
+private val TriangleShape = GenericShape { size, _ ->
+
+    addPath(Path().apply {
+        moveTo(size.width, size.height)
+        lineTo(0f, 0f)
+        lineTo(size.width, 5f)
+    }
+    )
+
 }
 
 

@@ -13,7 +13,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             TestTheme {
-               MainLayout()
+            MainLayout()
+        //        ItemsImage(R.drawable.ic_launcher_background)
             }
         }
     }
